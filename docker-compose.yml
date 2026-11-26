@@ -1,0 +1,11 @@
+services:
+  web:
+    build: .
+    image: alarm-dispatch-drill:latest
+    container_name: alarm-dispatch-drill
+    ports:
+      - "5000:5000"
+    environment:
+      # 开场各机可同时加载的台账行数上限（也可在页面无活动工单时调整）
+      DEFAULT_LEDGER_CAP: "20"
+    restart: unless-stopped

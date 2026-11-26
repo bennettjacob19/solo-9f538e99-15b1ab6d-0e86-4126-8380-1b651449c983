@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>设备告警分派演练 · 双查询执行器</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header>
+  <h1>设备告警分派演练</h1>
+  <p class="sub">两台查询执行器（M1 / M2）接单、预留台账容量、跨机额度校验与告警关联的单进程模拟</p>
+</header>
+
+<main>
+  <!-- 开场设置：各机可同时加载的台账行数上限 -->
+  <section class="card">
+    <h2>① 开场设置 · 台账行数上限</h2>
+    <div class="machines">
+      {% for m in machines %}
+      <div class="machine-cap" data-machine="{{ m }}">
+        <span class="mname">{{ m }}</span>
+        <label>台账容量上限
+          <input type="number" min="0" id="cap-{{ m }}" value="{{ default_cap }}">
+        </label>
+        <button class="btn small" data-act="set-cap" data-machine="{{ m }}">保存</button>
+        <span class="cap-info" id="cap-info-{{ m }}"></span>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="hint">容量只能在没有进行中工单时调整；接单瞬间按本单加载行数立即预留，工单结束（成功/失败）后释放。</p>
+  </section>
+
+  <!-- 录单 -->
+  <section class="card">
+    <h2>② 录入工单</h2>
+    <div class="order-meta">
+      <label>本单跨机行数额度
+        <input type="number" min="0" id="quota" value="3">
+      </label>
+      <label class="check">
+        <input type="checkbox" id="pause-after-load">
+        台账加载后暂停（暂停期间仍可提交另一单）
+      </label>
+    </div>
+    <div class="machines">
+      {% for m in machines %}
+      <fieldset class="machine-input" data-machine="{{ m }}">
+        <legend>{{ m }} 录入区</legend>
+        <label>告警（每行「告警号,设备号」，告警号互异）
+          <textarea id="alarms-{{ m }}" rows="4" placeholder="A001,D01&#10;A002,D02"></textarea>
+        </label>
+        <label>台账（每行「设备号,班组」，设备号互异）
+          <textarea id="ledger-{{ m }}" rows="4" placeholder="D01,甲班&#10;D02,乙班"></textarea>
+        </label>
+      </fieldset>
+      {% endfor %}
+    </div>
+    <p class="hint">两台告警号全单互异、台账设备号全单互异；全单最多涉及 12 个设备。跨机读取告警正文或台账，每行都计入本单额度。</p>
+    <div class="form-actions">
+      <button class="btn primary" id="submit-order">接单分派</button>
+      <span id="form-msg" class="form-msg"></span>
+    </div>
+  </section>
+
+  <!-- 工单列表 -->
+  <section class="card">
+    <h2>③ 工单执行情况</h2>
+    <div id="orders"></div>
+  </section>
+</main>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
